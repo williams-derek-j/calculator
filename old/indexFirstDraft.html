@@ -7,10 +7,8 @@
     <title>Calculator</title>
 </head>
 <body>
-    <div id="containerScreen">
-        <div id="screen">Welcome!</div>
-    </div>
     <div id="container">
+        <div id="screen">Welcome!</div>
         <button id="button1" class="buttonNum" data-value="1">1</button>
         <button id="button2" class="buttonNum" data-value="2">2</button>
         <button id="button3" class="buttonNum" data-value="3">3</button>
@@ -28,10 +26,6 @@
         <button id="button0" class="buttonNum" data-value="0">0</button>
         <button id="buttonDivide" class="buttonOp" data-value="/">/</button>  
     </div>
-    <div>
-        <label for="setRounding" class="setRounding">Round to:</label>
-        <input type="number" class="setRounding" id="inputSetRounding" name="setRounding" min="1" max="12" value="3">
-    </div>
 </body>
 <script>
     const calculator = {
@@ -47,28 +41,13 @@
         divide (expr) {
             return (Math.round((Number(expr.A) / Number(expr.B)) * 10**roundToDecimal) / 10**roundToDecimal);
         },
-        round (input) {
-            return (Math.round((Number(input)) * 10**roundToDecimal) / 10**roundToDecimal);
-        },
-
         process (expr, input) {
             console.log(`user input: ${input}`);
-
             if (typeof input === "string") {
-
-                if (expr.A.slice(-1) === ".") { // a symbol should never follow a decimal, assume decimal is erroneous
-                    expr.A = expr.A.slice(0,-1);
-                    expr.text = expr.A
-                } else if (expr.B) {
-                    if (expr.B.slice(-1) === ",") {
-                        expr.B = expr.B.slice(0,-1);
-                    };
-                };
-
                 if (input === "=") {
                     if ("B" in expr) { // user has a complete expression ready to be solved
                         if (expr.B === "-") { // user entered "# op - ="
-                            return calculator.round(expr.A);
+                            return expr.A;
                         } else {
                             if (expr.op === "+") {
                                 return calculator.sum(expr);
@@ -81,36 +60,51 @@
                             };
                         };
                     } else if ("op" in expr) { // user erroneously? entered "=" with just one number and an operator, missing second number -- currently using as clear button
-                        return calculator.round(expr.A);
+                        return expr.A;
                     } else { // user entered "# =", treat it as a new expression ready to be cleared if user continues entering digits
-                        return calculator.round(expr.A);
+                        if (expr.A.slice(-1) === ".") { // user entered "#. =", return as a new expression "#" w/o decimal
+                            return expr.A.slice(0,-1);
+                        } else {
+                            return expr.A;
+                        };
                     };
-
                 } else if ("+*/".includes(input)) {
-                    if ("op" in expr && "B" in expr) { // "# op # op" user had a complete expression, solve and use result to begin new expression w/ new operator
+                    if ("A" in expr && "op" in expr && "B" in expr) { // user had a complete expression, solve and use result to begin new expression w/ new operator
                         stageInputs("=");
                         stageInputs(input);
                         return;
-                    } else if ("op" in expr) { // "# op op" user had first number and operator of expression, but entered another operator, which is accepted as a substitution
+                    } else if ("A" in expr && "op" in expr) { // user had first number and operator of expression, but entered another operator, which is accepted as a substitution
                         expr.op = input;
                         expr.text = `${expr.A} ${expr.op}`;
                         return;
-                    } else { //"# op" standard input 
+                    } else if ("A" in expr) { // standard input "# op"
+                        if (expr.A.slice(-1) === ".") { // user input "#. op", erase decimal
+                            expr.A = expr.A.slice(0,-1);
+                        };
                         expr.op = input;
                         expr.text = `${expr.A} ${expr.op}`;
+                        return;
+                    } else { // user erroneously tried to begin expression with operator
                         return;
                     };
-
+                // } else if (input === "+" && !("op" in expr) && ("A" in expr)) { // standard input
+                //     expr.op = input;
+                //     expr.text += ` ${expr.op}`;
+                //     return;
+                // } else if (input === "+" && ("B" in expr)) { // user has both numbers of expression and followed with operator, solve first and use result as first number in new expression
+                //     stageInputs("=");
+                //     stageInputs("+");
+                //     return;
                 } else if (input === "-") {
-                    if (!("op" in expr)) { // "# -" standard input
+                    if ("A" in expr && !("op" in expr)) { // standard input "# -"
                         expr.op = input;
                         expr.text += ` ${expr.op}`;
                         return;
-                    } else if ("op" in expr && !("B" in expr)) { // "# op -" user already has first number and operator of expression, accept "-" as beginning of negative number, awaiting digit
+                    } else if ("op" in expr && !("B" in expr)) { // user already has first number and operator of expression, accept "-" as beginning of negative number, awaiting digit
                         expr.B = input;
                         expr.text += ` ${expr.B}`;
                         return;
-                    } else if ("op" in expr && "B" in expr) { // "# op # -" user has both numbers of expression and followed with operator, solve first and use result as first number in new expression
+                    } else if ("op" in expr && ("B" in expr)) { // user has both numbers of expression and followed with operator, solve first and use result as first number in new expression
                         if (expr.B === "-") { // user entered "# - - -"
                             return;
                         } else {
@@ -118,13 +112,36 @@
                             stageInputs("-");
                             return;
                         };
+                    } else if (!("A" in expr)) { // user has no expression, accept "-" as beginning of negative first number of expression, awaiting digit
+                        expr.A = input;
+                        expr.text = `${expr.A}`;
+                        return;
                     } else { // user entered "-" erroneously, ignore
                         return;
                     };
-
+                // } else if (input === "*" && !("op" in expr) && ("A" in expr)) { // standard input
+                //     expr.op = input;
+                //     expr.text += ` ${expr.op}`;
+                //     return;
+                // } else if (input === "*" && ("B" in expr)) { // user has both numbers of expression and followed with operator, solve first and use result as first number in new expression
+                //     stageInputs("=");
+                //     stageInputs("*");
+                //     return;
+                // } else if (input === "/" && !("op" in expr) && ("A" in expr)) { // standard input
+                //     expr.op = input;
+                //     expr.text += ` ${expr.op}`;
+                //     return;
+                // } else if (input === "/" && ("B" in expr)) { // user has both numbers of expression and followed with operator, solve first and use result as first number in new expression
+                //     stageInputs("=");
+                //     stageInputs("/");
+                //     return;
                 } else if (input === ".") {
-                    if (!("op" in expr)) { // "#." user has already entered at least the first digit of the first number in expression, or already had a solution from previous expression waiting to be used as first number in next expression
-                        if (!expr.rollover) { // "#." second+ digit of first number in expression
+                    if (!("A" in expr)) { // user is entering a decimal point as first digit of first number in expression, accepted as "0.#"
+                        expr.A = "0.";
+                        expr.text = expr.A;
+                        return;
+                    } else if (!("op" in expr)) { // user has already entered at least the first digit of the first number in expression, or already had a solution from previous expression waiting to be used as first number in next expression
+                        if (!expr.rollover) { // second+ digit of first number in expression
                             if (!(expr.A.includes("."))) {
                                 if (!(expr.A === "-")) {
                                     expr.A += ".";
@@ -135,20 +152,20 @@
                                     expr.text = expr.A;
                                     return;
                                 }
-                            } else { // "#.." or "#.#." number already had a decimal, so ignore erroneous input
+                            } else { // number already had a decimal, so ignore erroneous input
                                 return;
                             };
-                        } else { // "[solved]." user had a solution from previous expression, but user entered a decimal, which is accepted as "0.#", starting a new expression 
+                        } else { // user had a solution from previous expression, but user entered a decimal, which is accepted as "0.#", starting a new expression 
                             expr.rollover = false;
                             expr.A = "0.";
                             expr.text = expr.A;
                             return;
                         };
-                    } else if (!("B" in expr)) { // "# op ." user has already entered the first number and the operator of the expression, but user entered a decimal, which is accepted as "# + 0.#", awaiting digit
+                    } else if (!("B" in expr)) { // user has already entered the first number and the operator of the expression, but user entered a decimal, which is accepted as "# + 0.#", awaiting digit
                         expr.B = "0.";
                         expr.text += ` ${expr.B}`;
                         return;
-                    } else { // "# op #." user has already entered the first number, the operator and at least the first digit (or a "-") of the second number in expression
+                    } else { // user has already entered the first number, the operator and at least the first digit (or a "-") of the second number in expression
                         if (!(expr.B.includes("."))) {
                             if (!(expr.B === "-")) {
                                 expr.B += ".";
@@ -164,17 +181,20 @@
                         };
                     };
                 };
-
-
             } else if (typeof input === "number") {
-
                 if (!("op" in expr)) { // user is entering digits for first number in expression
-                    if (!expr.rollover) {
-                        expr.A += `${input}`;
-                        expr.text = expr.A;
-                        return;
-                    } else { // user had a solution from previous expression waiting to be used as first number of next expression, but user instead entered a digit, starting a new expression
-                        expr.rollover = false;
+                    if ("A" in expr) { // user has already entered at least the first digit of the first number in expression, or user has a solution from previous expression
+                        if (!expr.rollover) {
+                            expr.A += `${input}`;
+                            expr.text = expr.A;
+                            return;
+                        } else { // user had a solution from previous expression waiting to be used as first number of next expression, but user instead entered a digit, starting a new expression
+                            expr.rollover = false;
+                            expr.A = `${input}`;
+                            expr.text = expr.A;
+                            return;
+                        };
+                    } else { // user has not yet entered the first digit of the first number in expression
                         expr.A = `${input}`;
                         expr.text = expr.A;
                         return;
@@ -207,41 +227,33 @@
         };
     };
 
-    function stageInputs (input) {
+     function stageInputs (input) {
         if (typeof expr != "undefined") { // user has already entered digits
             const result = calculator.process(expr, input);
 
             if (typeof result != "undefined") { // calculator evaluated expression and returned a solution
                 console.log(`expression solved, result: ${result}`);
-
                 document.querySelector("#screen").innerText = `${result}`;
                 expr = new Expression(result, true);
-
                 console.log("rolling over result to new expression...");
                 return;
-
             } else { // expression still incomplete
                 document.querySelector("#screen").innerText = expr.text;
                 return;
             };
-
         } else { // user is entering first digit of new expression
             console.log(`user began new expression with: ${input}`);
-
             if (typeof input === "number") {
                 expr = new Expression(input);
                 document.querySelector("#screen").innerText = expr.text;
                 return;
-
             } else if (input === ".") { // user entered a decimal as first digit, which is accepted as "0."
                 expr = new Expression("0.");
                 document.querySelector("#screen").innerText = expr.text;
                 return;
-
             } else if (input === "-") { // user entered a "-", which is accepted as negative first number, awaiting digit
                 expr = new Expression("-");
                 document.querySelector("#screen").innerText = expr.text;
-
             } else { // user erroneously entered an invalid input, like an operator
                 return;
             };
@@ -249,11 +261,6 @@
     };
 
     let expr;
-    let roundToDecimal = 3;
-
-    document.querySelector('#inputSetRounding').addEventListener('input',function(e) {
-        roundToDecimal = e.target.value;
-    });
     
     const buttonsNum = document.querySelectorAll(".buttonNum");
     buttonsNum.forEach(buttonNum => buttonNum.addEventListener("click", function() {
@@ -267,12 +274,13 @@
     
     document.querySelector("#buttonEquals").addEventListener("click", function() {
         stageInputs("=");
-        console.log(roundToDecimal);
     });
     
     document.querySelector("#buttonDecimal").addEventListener("click", function() {
         stageInputs(".");
     });
     
+
+    const roundToDecimal = 4;
 </script>
 </html>
