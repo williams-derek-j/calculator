@@ -196,7 +196,7 @@
             this.A = `${initDigit}`;
             this.text = `${initDigit}`;
 
-            if (rollover) { // first number is result of previous expression?
+            if (rollover) {
                 this.rollover = true;
             } else {
                 this.rollover = false;
@@ -206,10 +206,10 @@
 
     function stageInputs (input) {
         if (typeof expr != "undefined") { // user already entered digits
+            const result = calculator.process(expr, input);
             if (typeof result != "undefined") { // calculator evaluated expression and returned a solution
                 document.querySelector("#screen").innerText = `${result}`;
                 expr = new Expression(result, true);
-                console.log("rolling over result to new expression...");
                 return;
             } else { // expression still incomplete
                 document.querySelector("#screen").innerText = expr.text;
@@ -236,7 +236,7 @@
     let expr;
     let roundToDecimal = 3;
 
-    document.querySelector('#inputSetRounding').addEventListener('input',function(e) { // input box to set decimal place
+    document.querySelector('#inputSetRounding').addEventListener('input',function(e) {
         roundToDecimal = e.target.value;
     });
     
