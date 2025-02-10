@@ -165,16 +165,14 @@
 
 
             } else if (typeof input === "number") {
-                if ("op" in expr) { // user has already entered first number in expression and an operator
-                    if ("B" in expr) { // user has already entered at least the first digit of the second number in expression
-                        expr.B += `${input}`;
-                        expr.text += `${input}`;
-                        return;
-                    } else { // user is entering the first digit of the second number in expression
-                        expr.B = `${input}`;
-                        expr.text += ` ${input}`
-                        return;
-                    };
+                if ("B" in expr) { // user has already entered at least the first digit of the second number in expression
+                    expr.B += `${input}`;
+                    expr.text += `${input}`;
+                    return;
+                } else if ("op" in expr) { // user is entering the first digit of the second number in expression
+                    expr.B = `${input}`;
+                    expr.text += ` ${expr.B}`
+                    return;
                 } else { // user is entering second+ digits for first number in expression -- note it is impossible to call methods of calculator without an existing expression
                     if (!expr.rollover) {
                         expr.A += `${input}`;
@@ -186,7 +184,7 @@
                         expr.text = expr.A;
                         return;
                     };
-                };f
+                };
             };
         },
     };
@@ -206,7 +204,9 @@
 
     function stageInputs (input) {
         if (typeof expr != "undefined") { // user already entered digits
+
             const result = calculator.process(expr, input);
+
             if (typeof result != "undefined") { // calculator evaluated expression and returned a solution
                 document.querySelector("#screen").innerText = `${result}`;
                 expr = new Expression(result, true);
@@ -216,6 +216,7 @@
                 return;
             };
         } else { // user entering first digit of new expression
+
             if (typeof input === "number") {
                 expr = new Expression(input);
                 document.querySelector("#screen").innerText = expr.text;
