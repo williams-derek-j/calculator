@@ -11,22 +11,22 @@
         <div id="screen">Welcome!</div>
     </div>
     <div id="container">
+        <button id="buttonPlus" class="buttonOp" data-value="+">+</button>
         <button id="button1" class="buttonNum" data-value="1">1</button>
         <button id="button2" class="buttonNum" data-value="2">2</button>
         <button id="button3" class="buttonNum" data-value="3">3</button>
-        <button id="buttonPlus" class = "buttonOp" data-value="+">+</button>
+        <button id="buttonMinus" class="buttonOp" data-value="-">-</button>
         <button id="button4" class="buttonNum" data-value="4">4</button>
         <button id="button5" class="buttonNum" data-value="5">5</button>
         <button id="button6" class="buttonNum" data-value="6">6</button>
-        <button id="buttonMinus" class="buttonOp" data-value="-">-</button>
+        <button id="buttonMultiply" class="buttonOp" data-value="*">*</button>
         <button id="button7" class="buttonNum" data-value="7">7</button>
         <button id="button8" class="buttonNum" data-value="8">8</button>
         <button id="button9" class="buttonNum" data-value="9">9</button>
-        <button id="buttonMultiply" class="buttonOp" data-value="*">*</button>
+        <button id="buttonDivide" class="buttonOp" data-value="/">/</button>
         <button id="buttonEquals">=</button>
         <button id="buttonDecimal">.</button>
         <button id="button0" class="buttonNum" data-value="0">0</button>
-        <button id="buttonDivide" class="buttonOp" data-value="/">/</button>  
     </div>
     <div>
         <label for="setRounding" class="setRounding">Round to:</label>
@@ -163,7 +163,6 @@
                     };
                 };
 
-
             } else if (typeof input === "number") {
                 if ("B" in expr) { // user has already entered at least the first digit of the second number in expression
                     expr.B += `${input}`;
@@ -187,19 +186,6 @@
                 };
             };
         },
-    };
-
-    class Expression {
-        constructor(initDigit, rollover) {
-            this.A = `${initDigit}`;
-            this.text = `${initDigit}`;
-
-            if (rollover) {
-                this.rollover = true;
-            } else {
-                this.rollover = false;
-            };
-        };
     };
 
     function stageInputs (input) {
@@ -234,13 +220,26 @@
         };
     };
 
-    let expr;
-    let roundToDecimal = 3;
+    class Expression {
+        constructor(initDigit, rollover) {
+            this.A = `${initDigit}`;
+            this.text = `${initDigit}`;
 
-    document.querySelector('#inputSetRounding').addEventListener('input',function(e) {
+            if (rollover) {
+                this.rollover = true;
+            } else {
+                this.rollover = false;
+            };
+        };
+    };
+    let expr;
+
+    let roundToDecimal = 3;
+    document.querySelector('#inputSetRounding').addEventListener('input', function(e) {
         roundToDecimal = e.target.value;
     });
-    
+
+
     const buttonsNum = document.querySelectorAll(".buttonNum");
     buttonsNum.forEach(buttonNum => buttonNum.addEventListener("click", function() {
         stageInputs(Number(buttonNum.getAttribute("data-value")));
